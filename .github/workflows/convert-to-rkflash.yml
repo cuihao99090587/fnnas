@@ -1,0 +1,77 @@
+name: Convert to RK Flash Format
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag to convert (e.g. fnnas_rockchip_692)"
+        required: true
+        default: "fnnas_rockchip_692"
+      board:
+        description: "Board name (e.g. ecb-pr51)"
+        required: true
+        default: "ecb-pr51"
+
+jobs:
+  convert:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download original firmware
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download ${{ inputs.release_tag }} \
+            --pattern "*${{ inputs.board }}*.img.xz" \
+            --dir . \
+            || gh release download ${{ inputs.release_tag }} \
+            --pattern "*${{ inputs.board }}*.img.gz" \
+            --dir .
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xz-utils gzip
+
+      - name: Decompress firmware
+        run: |
+          for f in *.img.xz; do
+            [ -f "$f" ] && xz -d "$f"
+          done
+          for f in *.img.gz; do
+            [ -f "$f" ] && gunzip "$f"
+          done
+          ls -lh *.img
+
+      - name: Inject bootloader for RK3568
+        run: |
+          IMG_FILE=$(ls *.img | head -1)
+          echo "Processing: $IMG_FILE"
+          
+          # Download bootloader from repository
+          curl -L -o idbloader.img "https://raw.githubusercontent.com/${{ github.repository }}/main/make-fnnas/fnnas-files/common-files/bootloader/rockchip/idbloader.img"
+          curl -L -o u-boot.itb "https://raw.githubusercontent.com/${{ github.repository }}/main/make-fnnas/fnnas-files/common-files/bootloader/rockchip/u-boot.itb"
+          
+          # Write idbloader at sector 64 (offset 32768)
+          dd if=idbloader.img of="$IMG_FILE" bs=512 seek=64 conv=notrunc
+          
+          # Write u-boot at sector 16384 (offset 8388608)
+          dd if=u-boot.itb of="$IMG_FILE" bs=512 seek=16384 conv=notrunc
+          
+          echo "Bootloader injected successfully"
+
+      - name: Compress converted firmware
+        run: |
+          IMG_FILE=$(ls *.img | head -1)
+          gzip -9 "$IMG_FILE"
+          ls -lh *.gz
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ inputs.release_tag }}-rkflash
+          files: "*.gz"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
