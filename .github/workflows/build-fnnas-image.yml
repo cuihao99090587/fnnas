@@ -13,8 +13,8 @@ on:
         description: "Select fnnas base image version"
         required: false
         default: "amlogic_693"
-        type: choice
-        options:
+        type: string
+        # removed options:
           - allwinner_691
           - amlogic_693
           - rockchip_692
@@ -22,8 +22,8 @@ on:
         description: "Select fnnas device board"
         required: false
         default: "all"
-        type: choice
-        options:
+        type: string
+        # removed options:
           - all
           - amlogic
           - rockchip
@@ -231,15 +231,15 @@ on:
         description: "Set fnnas kernel repository"
         required: false
         default: "ophub/fnnas"
-        type: choice
-        options:
+        type: string
+        # removed options:
           - ophub/fnnas
       fnnas_kernel:
         description: "Select fnnas kernel version"
         required: false
         default: "6.12.y"
-        type: choice
-        options:
+        type: string
+        # removed options:
           - 6.12.y
           - 6.18.y
           - 6.12.y_6.18.y
@@ -260,8 +260,8 @@ on:
         description: "Set fnnas builder signature"
         required: false
         default: "ophub"
-        type: choice
-        options:
+        type: string
+        # removed options:
           - ophub
           - angel
           - yourname
