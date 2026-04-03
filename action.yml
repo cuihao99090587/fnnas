@@ -90,7 +90,13 @@ runs:
                 if [[ "${fnnas_filename}" =~ ^/ ]]; then
                     cp -vf ${fnnas_filename} ${fnnas_savepath}/ || true
                 else
-                    cp -vf ${{ github.workspace }}/${fnnas_filename} ${fnnas_savepath}/ || true
+                    # Handle glob patterns like fnnas/*.img.xz
+                    if [[ "${fnnas_filename}" == *"*"* ]]; then
+                        src_file=$(ls ${{ github.workspace }}/${fnnas_filename} 2>/dev/null | head -n 1)
+                        [[ -n "${src_file}" ]] && cp -vf "${src_file}" ${fnnas_savepath}/ || true
+                    else
+                        cp -vf ${{ github.workspace }}/${fnnas_filename} ${fnnas_savepath}/ || true
+                    fi
                 fi
             else
                 echo -e "The [ ${fnnas_savepath}/${fnnas_savefile} ] file already exists, skipping."
