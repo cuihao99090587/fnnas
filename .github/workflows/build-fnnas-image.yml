@@ -1,6 +1,6 @@
 #=====================================================================================
 # https://github.com/ophub/fnnas
-# Description: Build FnNAS Image
+# Description: Build FnNAS Image for Lenovo ECB-PR51
 #=====================================================================================
 
 name: Build FnNAS Image
@@ -12,7 +12,7 @@ on:
       fnnas_base_version:
         description: "Select fnnas base image version"
         required: false
-        default: "amlogic_693"
+        default: "rockchip_692"
         type: choice
         options:
           - allwinner_691
@@ -21,219 +21,8 @@ on:
       fnnas_board:
         description: "Select fnnas device board"
         required: false
-        default: "all"
+        default: "rockchip"
         type: string
-        options:
-          - all
-          - amlogic
-          - rockchip
-          - allwinner
-          - rockchip50
-          - rockchip50_100
-          - first50
-          - range50_100
-          - range100_150
-          - last20
-          - a311d-oes_s922x-oes-plus_wxy-oect
-          - nsy-g16-plus_nsy-g68-plus_bdy-g18-pro
-          - s905d_s905x3_s912_s922x-ct2000
-          - a311d
-          - a311d-oes
-          - alark35-3500
-          - anas3035
-          - aio-3399b
-          - aio-3399c
-          - aio-3399c-ai
-          - bdkj-bd-one
-          - bdy-g18-pro
-          - beikeyun
-          - boca-tcn100
-          - cd1000
-          - chainedbox
-          - cm3588-nas
-          - crrc
-          - dc-a588
-          - dg3399
-          - dg-tn3568
-          - dlfr100
-          - e20c
-          - e25
-          - eaidk-610
-          - emb3531
-          - fine3399
-          - firefly-itx-3588j
-          - firefly-jd4
-          - firefly-rk3399
-          - fmx1-pro
-          - fmx1-pro-b
-          - gea-6319
-          - gzpeite-p01
-          - h28k
-          - h618-devboard
-          - h66k
-          - h68k
-          - h69k
-          - h88k
-          - h88k-v3
-          - h96-max-m2
-          - hk1-rbox-k8s
-          - hs530r
-          - ht2
-          - hugsun-x99
-          - ipc-r
-          - jp-tvbox
-          - king3399
-          - kylin3399
-          - lckfb-tspi
-          - leez
-          - lx-r3s
-          - lyt-t68m
-          - lz-d3568
-          - lz-d3588
-          - lz-k3568
-          - mrkaio-m68s
-          - nanopc-t4
-          - nanopc-t6
-          - nanopi-m5
-          - nanopi-r5c
-          - nanopi-r5s
-          - nsy-g16-plus
-          - nsy-g68-plus
-          - orangepi-3b
-          - orangepi-5-plus
-          - orangepi-5b
-          - orangepi-zero3
-          - panther-x2
-          - photonicat
-          - r66s
-          - r68s
-          - renegade-rk3328
-          - rk3318-box
-          - rock-5-itx
-          - rock5b
-          - rock5c
-          - ruisen-box
-          - s905
-          - s905-beelink-mini
-          - s905-mxqpro-plus
-          - s905d
-          - s905d-ki-pro
-          - s905d-sml5442tw
-          - s905l
-          - s905l-aurora-1s
-          - s905l-b860av21u
-          - s905l-mg101
-          - s905l2
-          - s905l2-e900v21e
-          - s905l2-wojia
-          - s905l3
-          - s905l3-cm211
-          - s905l3-unt400g1
-          - s905l3-unt402a
-          - s905l3a
-          - s905l3a-cm311
-          - s905l3a-m401a
-          - s905l3b
-          - s905l3b-e900v21d
-          - s905l3b-e900v22d
-          - s905l3b-e900v22e
-          - s905l3b-ip103h
-          - s905l3b-rg020et-ca
-          - s905l3b-unt403a
-          - s905lb-ipbs9505
-          - s905lb-q96-mini
-          - s905lb-r3300l
-          - s905mb
-          - s905w
-          - s905w-w95
-          - s905w-x96-mini
-          - s905w-x96w
-          - s905x
-          - s905x-b860h
-          - s905x-nexbox-a95x
-          - s905x-t95
-          - s905x-tbee
-          - s905x-tx9
-          - s905x2
-          - s905x2-km3
-          - s905x2-x96max-2g
-          - s905x2-hg680fj
-          - s905x3
-          - s905x3-2101
-          - s905x3-a100
-          - s905x3-a95xf3
-          - s905x3-a95xf3-gb
-          - s905x3-b
-          - s905x3-h96max
-          - s905x3-hk1
-          - s905x3-ip1001m
-          - s905x3-q1
-          - s905x3-q2
-          - s905x3-tox1
-          - s905x3-tx3
-          - s905x3-tx3-bz
-          - s905x3-ugoosx3
-          - s905x3-whale
-          - s905x3-x88-pro-x3
-          - s905x3-x96air
-          - s905x3-x96air-gb
-          - s905x3-x96max
-          - s912
-          - s912-h96pro-plus
-          - s912-m8s-pro
-          - s912-nexbox-a1
-          - s912-nexbox-a2
-          - s912-onecloudpro
-          - s912-phicomm-t1
-          - s912-t95z-plus
-          - s912-tx8-max
-          - s912-tx9-pro-2g
-          - s912-tx9-pro-3g
-          - s912-x92
-          - s912-zyxq-fake
-          - s922x
-          - s922x-ct2000
-          - s922x-gtking
-          - s922x-gtkingpro-h
-          - s922x-odroid-n2
-          - s922x-oes-plus
-          - s922x-reva
-          - s922x-ugoos-am6
-          - seewo-sv21
-          - smart-am40
-          - smart-am60
-          - station-m1
-          - station-m2
-          - station-p2
-          - sv-33a6x
-          - sv-33a6x-vpu
-          - swan1-w28
-          - sw799
-          - taram
-          - tanix-tx6
-          - tb-ls3399
-          - tn3399
-          - tpm312
-          - tqc-a01
-          - tvi3315a
-          - vplus
-          - wocyber-a3
-          - wxy-oect
-          - wxy-oect-mod
-          - x88pro20
-          - x98h
-          - xiaobao
-          - yskj
-          - zcube1-max
-          - zk-r39a
-          - zysj
-      kernel_repo:
-        description: "Set fnnas kernel repository"
-        required: false
-        default: "ophub/fnnas"
-        type: choice
-        options:
-          - ophub/fnnas
       fnnas_kernel:
         description: "Select fnnas kernel version"
         required: false
@@ -252,10 +41,6 @@ on:
         description: "Set rootfs expansion size(GiB)"
         required: false
         default: "16"
-      fnnas_url:
-        description: "Custom fnnas image download url"
-        required: false
-        default: ""
       builder_name:
         description: "Set fnnas builder signature"
         required: false
@@ -264,7 +49,6 @@ on:
         options:
           - ophub
           - angel
-          - yourname
 
 env:
   TZ: Etc/UTC
@@ -292,7 +76,6 @@ jobs:
           sudo -E apt-get -y purge azure-cli ghc* zulu* llvm* firefox google* dotnet* powershell openjdk* mongodb* moby* || true
           sudo -E apt-get -y install $(curl -fsSL https://ophub.org/ubuntu2404-make-fnnas-depends)
           sudo -E systemctl daemon-reload
-          #sudo -E apt-get -y full-upgrade
           sudo -E apt-get -y autoremove --purge
           sudo -E apt-get clean
           sudo sed -i '/NVM_DIR/d;/skel/d' /root/{.bashrc,.profile}
@@ -331,63 +114,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OWNER: ${{ github.repository_owner }}
         run: |
-          # Create directory
           [[ -d "fnnas" ]] || mkdir -p fnnas
-
           input_url="${{ inputs.fnnas_url }}"
           fnnas_base_version="${{ inputs.fnnas_base_version }}"
           [[ -n "${fnnas_base_version}" ]] && build_tag="fnnas_${fnnas_base_version}" || build_tag="fnnas_save"
 
-          # -------------------------------------------------------
-          # Case A: URL specified
-          # -------------------------------------------------------
-          if [[ -n "${input_url}" ]]; then
-              echo "Custom URL detected: ${input_url}"
-
-              # Remove any parameters that may be included in the URL (?...)
-              clean_url="${input_url%%\?*}"
-
-              # Regex match GitHub Release URL format
-              # Format: https://github.com/<owner>/<repo>/releases/download/<tag>/<filename>
-              regex="github\.com/([^/]+)/([^/]+)/releases/download/([^/]+)/(.+)"
-
-              if [[ "${clean_url}" =~ $regex ]]; then
-                  # Extract information
-                  owner="${BASH_REMATCH[1]}"
-                  repo="${BASH_REMATCH[2]}"
-                  tag="${BASH_REMATCH[3]}"
-                  filename="${BASH_REMATCH[4]}"
-
-                  echo "Detected GitHub Release URL."
-                  echo "Repo: $owner/$repo | Tag: $tag | File: $filename"
-
-                  # Use gh cli to download
-                  gh release download "${tag}" \
-                      --repo "${owner}/${repo}" \
-                      --pattern "${filename}" \
-                      --dir "fnnas" \
-                      --clobber
-
-                  # Check download result
-                  if [[ -f "fnnas/${filename}" ]]; then
-                      echo "Download success via gh-cli."
-                      echo "status=success" >> ${GITHUB_OUTPUT}
-                      exit 0
-                  else
-                      echo "Error: gh download failed."
-                      exit 1
-                  fi
-              else
-                  # If not a standard Release URL (e.g., API URL or third-party URL), fallback to curl
-                  echo "Using curl fallback..."
-                  latest_url="${input_url}"
-                  fnnas_filename=$(basename "${clean_url}")
-              fi
-
-          # -------------------------------------------------------
-          # Case B: Automatically fetch the latest version
-          # -------------------------------------------------------
-          else
+          if [[ -z "${input_url}" ]]; then
               echo "Auto-detecting latest release..."
               latest_version=$(curl -s \
                   -H "Accept: application/vnd.github+json" \
@@ -404,15 +136,16 @@ jobs:
 
               [[ -z "${latest_version}" || "${latest_version}" == "null" ]] && {
               echo "Error: Failed to resolve FnNAS image download URL."
+              exit 1
               }
 
               latest_url="$(echo ${latest_version} | jq -r '.url')"
               fnnas_filename="$(echo ${latest_version} | jq -r '.name')"
+          else
+              latest_url="${input_url}"
+              fnnas_filename=$(basename "${latest_url}")
           fi
 
-          # -------------------------------------------------------
-          # Execute curl download (only if the above gh did not run)
-          # -------------------------------------------------------
           echo "Downloading: ${fnnas_filename}"
           echo "Source: ${latest_url}"
 
@@ -424,7 +157,6 @@ jobs:
 
           [[ "${?}" -ne "0" ]] && echo "Error: Download failed." && exit 1
 
-          # Create directory symlinks for packaging
           ln -sf /builder/fnnas ${{ github.workspace }}/fnnas
           ln -sf /builder/fnnas "/home/runner/work/_actions/${OWNER,,}/fnnas/main/fnnas"
 
@@ -443,9 +175,95 @@ jobs:
           rootfs_expand: ${{ inputs.rootfs_expand }}
           builder_name: ${{ inputs.builder_name }}
 
-      - name: Upload packaged FnNAS to Release
-        uses: ncipollo/release-action@main
+      - name: Download BRCM WiFi/BT Firmware (for ECB-PR51)
         if: ${{ env.PACKAGED_STATUS == 'success' && !cancelled() }}
+        run: |
+          echo "📥 Downloading BRCM firmware for BCM4356..."
+          
+          FIRMWARE_DIR="${{ env.PACKAGED_OUTPUTPATH }}/firmware-brcm"
+          mkdir -p "$FIRMWARE_DIR"
+          
+          # Download WiFi firmware
+          echo "Downloading WiFi firmware..."
+          curl -sL "https://raw.githubusercontent.com/torvalds/linux-firmware/master/brcm/brcmfmac43456-sdio.bin" -o "$FIRMWARE_DIR/brcmfmac43456-sdio.bin"
+          curl -sL "https://raw.githubusercontent.com/torvalds/linux-firmware/master/brcm/brcmfmac43456-sdio.clm_blob" -o "$FIRMWARE_DIR/brcmfmac43456-sdio.clm_blob"
+          curl -sL "https://raw.githubusercontent.com/torvalds/linux-firmware/master/brcm/brcmfmac43456-sdio.txt" -o "$FIRMWARE_DIR/brcmfmac43456-sdio.txt"
+          
+          # Download BT firmware
+          echo "Downloading Bluetooth firmware..."
+          curl -sL "https://raw.githubusercontent.com/torvalds/linux-firmware/master/brcm/BCM4345C5.hcd" -o "$FIRMWARE_DIR/BCM4345C5.hcd"
+          
+          echo "✅ Firmware downloaded:"
+          ls -lh "$FIRMWARE_DIR"
+          
+          # Create installation script
+          cat > "$FIRMWARE_DIR/install-firmware.sh" << 'EOF'
+#!/bin/bash
+# BRCM WiFi/BT Firmware Installation Script for FnNAS
+# For Lenovo ECB-PR51 (BCM4356)
+
+FIRMWARE_DIR="/lib/firmware/brcm"
+BACKUP_DIR="/root/firmware-backup"
+
+echo "=========================================="
+echo "Installing BRCM WiFi/BT Firmware"
+echo "=========================================="
+
+mkdir -p "$BACKUP_DIR"
+
+if [ -d "$FIRMWARE_DIR" ] && [ "$(ls -A $FIRMWARE_DIR 2>/dev/null)" ]; then
+    echo "📦 Backing up existing firmware..."
+    cp -r "$FIRMWARE_DIR"/* "$BACKUP_DIR/" 2>/dev/null || true
+fi
+
+mkdir -p "$FIRMWARE_DIR"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo "📥 Copying firmware files..."
+cp "$SCRIPT_DIR/brcmfmac43456-sdio.bin" "$FIRMWARE_DIR/"
+cp "$SCRIPT_DIR/brcmfmac43456-sdio.clm_blob" "$FIRMWARE_DIR/"
+cp "$SCRIPT_DIR/brcmfmac43456-sdio.txt" "$FIRMWARE_DIR/"
+cp "$SCRIPT_DIR/BCM4345C5.hcd" "$FIRMWARE_DIR/"
+
+chmod 644 "$FIRMWARE_DIR"/*
+
+echo "✅ Firmware copied to $FIRMWARE_DIR"
+
+echo "📶 Loading WiFi driver..."
+modprobe brcmfmac 2>/dev/null || true
+modprobe brcmutil 2>/dev/null || true
+modprobe cfg80211 2>/dev/null || true
+
+echo "🎧 Loading Bluetooth driver..."
+modprobe btbcm 2>/dev/null || true
+modprobe hci_uart 2>/dev/null || true
+
+sleep 2
+
+if ip link show | grep -q "wlan"; then
+    echo "✅ WiFi interface detected"
+else
+    echo "⚠️  WiFi interface not found"
+fi
+
+if hciconfig -a 2>/dev/null | grep -q "hci0"; then
+    echo "✅ Bluetooth device detected"
+else
+    echo "⚠️  Bluetooth device not found"
+fi
+
+echo "=========================================="
+echo "✅ Firmware installation complete!"
+echo "=========================================="
+EOF
+
+          chmod +x "$FIRMWARE_DIR/install-firmware.sh"
+          echo "✅ Installation script created"
+
+      - name: Upload packaged FnNAS to Release
+        if: ${{ env.PACKAGED_STATUS == 'success' && !cancelled() }}
+        uses: ncipollo/release-action@main
         with:
           tag: ${{ env.build_tag }}
           artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
@@ -455,9 +273,40 @@ jobs:
           makeLatest: true
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
-            - Built based on the fnnas.com [official Arm64 image](https://github.com/ophub/fnnas/releases/tag/fnnas_base_image),
-              fully preserving the original official system experience.
-              Extends support to a wider range of Amlogic, Rockchip, and Allwinner devices.
-            - 基于 fnnas.com [官方 Arm64 镜像](https://github.com/ophub/fnnas/releases/tag/fnnas_base_image) 构建，
-              完整保留官方原版系统体验。
-              扩展支持更多基于 Amlogic、Rockchip 及 Allwinner 平台的设备。
+            ## FnNAS for Lenovo ECB-PR51
+            
+            **Device:** Lenovo ECB-PR51 (RK3568, 8GB DDR4, 32GB eMMC, SATA, Dual Gigabit Ethernet, AP6256 WiFi/BT)
+            
+            ### ✅ Hardware Support
+            - ✅ Dual Gigabit Ethernet (RGMII)
+            - ✅ SATA 3.0
+            - ✅ WiFi 802.11ac (BCM4356)
+            - ✅ Bluetooth 5.0 (BCM4356)
+            - ✅ HDMI 4K@60fps
+            - ✅ USB 3.0
+            
+            ### 📦 Package Contents
+            - `*.img.xz` - FnNAS firmware image
+            - `firmware-brcm/` - WiFi/BT firmware files
+              - `brcmfmac43456-sdio.bin` - WiFi main firmware
+              - `brcmfmac43456-sdio.clm_blob` - WiFi calibration data
+              - `brcmfmac43456-sdio.txt` - WiFi configuration
+              - `BCM4345C5.hcd` - Bluetooth firmware
+              - `install-firmware.sh` - Auto-installation script
+            
+            ### 🔧 Installation
+            1. Write `.img.xz` to eMMC/USB
+            2. Boot FnNAS system
+            3. SSH to system
+            4. Run firmware installation:
+               ```bash
+               cd /root
+               ./firmware-brcm/install-firmware.sh
+               ```
+            
+            ### 📝 Notes
+            - WiFi/BT firmware included in release package
+            - Run `install-firmware.sh` after first boot to enable WiFi/BT
+            - Dual Ethernet and HDMI work out of the box
+            
+            Built based on [ophub/fnnas](https://github.com/ophub/fnnas)
