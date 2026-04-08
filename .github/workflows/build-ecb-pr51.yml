@@ -4,16 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       kernel_tags:
-        description: 'KERNEL_TAGS (内核标签)'
+        description: 'KERNEL_TAGS (例如: rk35xx/stable)'
         required: true
         default: 'rk35xx/stable'
-        type: choice
-        options:
-          - 'rk35xx/stable'
-          - 'rk35xx/6.1.y'
-          - 'stable'
       kernel_version:
-        description: '内核版本'
+        description: '内核版本 (例如: 6.12.y)'
         required: true
         default: '6.12.y'
 
@@ -39,12 +34,11 @@ jobs:
           git sparse-checkout set include/dt-bindings
           cd ..
 
-      - name: Compile DTS to DTB (using final dts)
+      - name: Compile DTS to DTB
         run: |
           cd fnnas
           DTS_PATH=$(find . -name "rk3568-ecb-pr51-final.dts" | head -1)
           if [ -n "$DTS_PATH" ]; then
-            echo "Found DTS: $DTS_PATH"
             dtc -I dts -O dtb -o rk3568-ecb-pr51-final.dtb -i ../linux/include "$DTS_PATH"
             echo "DTB compiled successfully"
           else
@@ -56,30 +50,28 @@ jobs:
         run: |
           cd fnnas
           mkdir -p make-fnnas/fnnas-files/platform-files/rockchip/bootfs/dtb/rockchip/
-          if [ -f "rk3568-ecb-pr51-final.dtb" ]; then
-            cp rk3568-ecb-pr51-final.dtb make-fnnas/fnnas-files/platform-files/rockchip/bootfs/dtb/rockchip/
-          fi
+          cp rk3568-ecb-pr51-final.dtb make-fnnas/fnnas-files/platform-files/rockchip/bootfs/dtb/rockchip/
 
       - name: Add AP6256 firmware files to overlay
         run: |
           cd fnnas
           mkdir -p make-fnnas/fnnas-files/overlay/lib/firmware/brcm/
           if [ -d "wifi_bt_固件" ]; then
-            cp -v wifi_bt_固件/* make-fnnas/fnnas-files/overlay/lib/firmware/brcm/ 2>/dev/null || true
+            cp wifi_bt_固件/* make-fnnas/fnnas-files/overlay/lib/firmware/brcm/
+            echo "Firmware copied"
           else
-            echo "Warning: wifi_bt_固件 directory not found"
+            echo "Warning: wifi_bt_固件 not found"
           fi
 
-      - name: Update model database with correct DTB
+      - name: Update model database
         run: |
           cd fnnas
           DB_FILE="make-fnnas/fnnas-files/common-files/etc/model_database.conf"
-          if grep -q "Lenovo-ECB-PR51" "$DB_FILE"; then
-            cp "$DB_FILE" "${DB_FILE}.bak"
-            sed -i 's/rk3568-ecb-pr51\.dtb/rk3568-ecb-pr51-final.dtb/g' "$DB_FILE"
-          else
-            # 使用 echo 追加，避免 heredoc 的 YAML 语法问题
+          if ! grep -q "Lenovo-ECB-PR51" "$DB_FILE"; then
             echo 'r999:Lenovo-ECB-PR51:rk3568:rk3568-ecb-pr51-final.dtb:NA:u-boot.itb:idbloader.img:8GB-DDR4,32GB-eMMC,2x1Gb-Nic,3xSATA,2xUSB3.0:rk35xx/stable:rockchip:rk3568:fnnasEnv.txt:cuihao99090587:ecb-pr51:yes' >> "$DB_FILE"
+            echo "Entry added"
+          else
+            echo "Entry already exists"
           fi
 
       - name: Build FnOS for ECB-PR51
