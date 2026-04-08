@@ -1,0 +1,168 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Device tree source for Lenovo ECB-PR51 (RK3568)
+ * Based on rockchip,rk3568-evb1-ddr4-v10
+ * Adapted for 6.12.y kernel
+ */
+
+/dts-v1/;
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/pinctrl/rockchip.h>
+#include <dt-bindings/soc/rockchip,vop2.h>
+#include "rk3568.dtsi"
+
+/ {
+    model = "Lenovo ECB-PR51";
+    compatible = "rockchip,rk3568-evb1-ddr4-v10", "rockchip,rk3568";
+
+    chosen {
+        stdout-path = "serial2:1500000n8";
+    };
+
+    vcc3v3_sys: vcc3v3-sys {
+        compatible = "regulator-fixed";
+        regulator-name = "vcc3v3_sys";
+        regulator-always-on;
+        regulator-boot-on;
+        regulator-min-microvolt = <3300000>;
+        regulator-max-microvolt = <3300000>;
+    };
+
+    vcc5v0_sys: vcc5v0-sys {
+        compatible = "regulator-fixed";
+        regulator-name = "vcc5v0_sys";
+        regulator-always-on;
+        regulator-boot-on;
+        regulator-min-microvolt = <5000000>;
+        regulator-max-microvolt = <5000000>;
+    };
+
+    vcc3v3_pcie: vcc3v3-pcie {
+        compatible = "regulator-fixed";
+        regulator-name = "vcc3v3_pcie";
+        regulator-always-on;
+        regulator-boot-on;
+        regulator-min-microvolt = <3300000>;
+        regulator-max-microvolt = <3300000>;
+    };
+
+    /* WiFi/BT: AP6256 (BCM4356) */
+    wifi_bluetooth: wifi-bluetooth {
+        compatible = "brcm,bcm4356";
+        pinctrl-names = "default";
+        pinctrl-0 = <&wifi_enable_h>;
+        reset-gpios = <&gpio0 RK_PB2 GPIO_ACTIVE_HIGH>;
+        /* WiFi SDIO interface */
+        /* BT UART interface handled separately */
+    };
+};
+
+&gmac0 {
+    phy-mode = "rgmii";
+    clock_in_out = "output";
+    snps,reset-gpio = <&gpio3 RK_PC2 GPIO_ACTIVE_LOW>;
+    snps,reset-active-low;
+    snps,reset-delays-us = <0 10000 50000>;
+    tx_delay = <0x28>;
+    rx_delay = <0x11>;
+    phy-handle = <&rgmii_phy>;
+    status = "okay";
+};
+
+&gmac1 {
+    phy-mode = "rgmii";
+    clock_in_out = "output";
+    snps,reset-gpio = <&gpio3 RK_PC7 GPIO_ACTIVE_LOW>;
+    snps,reset-active-low;
+    snps,reset-delays-us = <0 10000 50000>;
+    tx_delay = <0x28>;
+    rx_delay = <0x11>;
+    phy-handle = <&rgmii_phy1>;
+    status = "okay";
+};
+
+&i2c0 {
+    status = "okay";
+};
+
+&i2c1 {
+    status = "okay";
+};
+
+&sdhci {
+    bus-width = <8>;
+    max-frequency = <200000000>;
+    non-removable;
+    pinctrl-names = "default";
+    pinctrl-0 = <&emmc_bus8 &emmc_cmd &emmc_clk>;
+    status = "okay";
+};
+
+&sdmmc0 {
+    bus-width = <4>;
+    cap-sd-highspeed;
+    cd-gpios = <&gpio0 RK_PA4 GPIO_ACTIVE_LOW>;
+    disable-wp;
+    pinctrl-names = "default";
+    pinctrl-0 = <&sdmmc0_bus4 &sdmmc0_cmd &sdmmc0_clk>;
+    vmmc-supply = <&vcc3v3_sys>;
+    status = "okay";
+};
+
+&uart2 {
+    status = "okay";
+};
+
+/* BT UART */
+&uart9 {
+    pinctrl-names = "default";
+    pinctrl-0 = <&uart9m0_ctsn &uart9m0_rtsn &uart9m0>;
+    status = "okay";
+
+    bluetooth {
+        compatible = "brcm,bcm43430a1";
+        clocks = <&rk809 1>;
+        clock-names = "ext_clock";
+        device-wakeup-gpios = <&gpio2 RK_PC2 GPIO_ACTIVE_HIGH>;
+        host-wakeup-gpios = <&gpio2 RK_PC1 GPIO_ACTIVE_HIGH>;
+        shutdown-gpios = <&gpio2 RK_PC0 GPIO_ACTIVE_HIGH>;
+    };
+};
+
+&usb_host0_ehci {
+    status = "okay";
+};
+
+&usb_host0_ohci {
+    status = "okay";
+};
+
+&usb_host1_ehci {
+    status = "okay";
+};
+
+&usb_host1_ohci {
+    status = "okay";
+};
+
+&usb2phy0 {
+    status = "okay";
+};
+
+&usb2phy1 {
+    status = "okay";
+};
+
+&pcie2x1 {
+    reset-gpios = <&gpio3 RK_PC5 GPIO_ACTIVE_HIGH>;
+    vpcie3v3-supply = <&vcc3v3_pcie>;
+    status = "okay";
+};
+
+&pinctrl {
+    wifi {
+        wifi_enable_h: wifi-enable-h {
+            rockchip,pins = <0 RK_PB2 RK_FUNC_GPIO &pcfg_pull_none>;
+        };
+    };
+};
