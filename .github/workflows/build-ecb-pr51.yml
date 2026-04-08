@@ -1,90 +1,35 @@
-name: Build FnOS for Lenovo-ECB-PR51
+name: Build FnOS for ECB-PR51
 
 on:
   workflow_dispatch:
-    inputs:
-      kernel_tags:
-        description: 'KERNEL_TAGS (例如: rk35xx/stable)'
-        required: true
-        default: 'rk35xx/stable'
-      kernel_version:
-        description: '内核版本 (例如: 6.12.y)'
-        required: true
-        default: '6.12.y'
+
+env:
+  TZ: Asia/Shanghai
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
-      - name: Checkout your forked fnnas repository
+      - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Package FnOS for ECB-PR51
+        uses: ophub/fnnas@main
         with:
-          path: fnnas
-          fetch-depth: 0
+          build_target: fnnas
+          fnnas_board: rk3568-ecb-pr51
+          fnnas_kernel: 6.12.y
+          auto_kernel: true
+          kernel_repo: ophub/fnnas
+          rootfs_expand: 16
+          builder_name: fnos-ecb-pr51
 
-      - name: Install dependencies and DTC
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y device-tree-compiler build-essential flex bison libssl-dev bc u-boot-tools
-
-      - name: Setup kernel headers for DTC
-        run: |
-          git clone --depth=1 --filter=blob:none --sparse https://github.com/torvalds/linux.git
-          cd linux
-          git sparse-checkout set include/dt-bindings
-          cd ..
-
-      - name: Compile DTS to DTB
-        run: |
-          cd fnnas
-          DTS_PATH=$(find . -name "rk3568-ecb-pr51-final.dts" | head -1)
-          if [ -n "$DTS_PATH" ]; then
-            dtc -I dts -O dtb -o rk3568-ecb-pr51-final.dtb -i ../linux/include "$DTS_PATH"
-            echo "DTB compiled successfully"
-          else
-            echo "ERROR: rk3568-ecb-pr51-final.dts not found"
-            exit 1
-          fi
-
-      - name: Place DTB to platform directory
-        run: |
-          cd fnnas
-          mkdir -p make-fnnas/fnnas-files/platform-files/rockchip/bootfs/dtb/rockchip/
-          cp rk3568-ecb-pr51-final.dtb make-fnnas/fnnas-files/platform-files/rockchip/bootfs/dtb/rockchip/
-
-      - name: Add AP6256 firmware files to overlay
-        run: |
-          cd fnnas
-          mkdir -p make-fnnas/fnnas-files/overlay/lib/firmware/brcm/
-          if [ -d "wifi_bt_固件" ]; then
-            cp wifi_bt_固件/* make-fnnas/fnnas-files/overlay/lib/firmware/brcm/
-            echo "Firmware copied"
-          else
-            echo "Warning: wifi_bt_固件 not found"
-          fi
-
-      - name: Update model database
-        run: |
-          cd fnnas
-          DB_FILE="make-fnnas/fnnas-files/common-files/etc/model_database.conf"
-          if ! grep -q "Lenovo-ECB-PR51" "$DB_FILE"; then
-            echo 'r999:Lenovo-ECB-PR51:rk3568:rk3568-ecb-pr51-final.dtb:NA:u-boot.itb:idbloader.img:8GB-DDR4,32GB-eMMC,2x1Gb-Nic,3xSATA,2xUSB3.0:rk35xx/stable:rockchip:rk3568:fnnasEnv.txt:cuihao99090587:ecb-pr51:yes' >> "$DB_FILE"
-            echo "Entry added"
-          else
-            echo "Entry already exists"
-          fi
-
-      - name: Build FnOS for ECB-PR51
-        env:
-          KERNEL_TAGS: ${{ github.event.inputs.kernel_tags }}
-        run: |
-          cd fnnas
-          chmod +x rebuild
-          sudo -E ./rebuild -b Lenovo-ECB-PR51 -k ${{ github.event.inputs.kernel_version }} -a true -n fnos-ecb-pr51
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload to Release
+        if: ${{ env.PACKAGED_STATUS == 'success' }}
+        uses: ncipollo/release-action@main
         with:
-          name: fnos-ecb-pr51-${{ github.run_number }}
-          path: fnnas/build/output/images/*.img.gz
-          retention-days: 30
+          tag: FnOS_ECB-PR51_${{ github.run_number }}
+          artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
+          allowUpdates: true
+          makeLatest: true
+          token: ${{ secrets.GITHUB_TOKEN }}
