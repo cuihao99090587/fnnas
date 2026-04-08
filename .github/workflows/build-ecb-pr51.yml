@@ -32,14 +32,31 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y device-tree-compiler build-essential flex bison libssl-dev bc u-boot-tools
 
-      # --- 编译 DTS 到 DTB（如果需要）---
-      - name: Compile DTS to DTB
+      # --- 准备内核头文件用于 dtc 编译 ---
+      - name: Setup kernel headers for DTC
+        run: |
+          # 克隆内核源码（仅获取 include/dt-bindings 目录）
+          git clone --depth=1 --filter=blob:none --sparse https://github.com/torvalds/linux.git
+          cd linux
+          git sparse-checkout set include/dt-bindings
+          cd ..
+          echo "Kernel headers prepared at $(pwd)/linux/include"
+
+      # --- 编译修正后的 DTS 到 DTB ---
+      - name: Compile DTS to DTB (using final dts)
         run: |
           cd fnnas
-          DTS_PATH=$(find . -name "rk3568-ecb-pr51.dts" | head -1)
+          # 查找最终的 DTS 文件
+          DTS_PATH=$(find . -name "rk3568-ecb-pr51-final.dts" | head -1)
           if [ -n "$DTS_PATH" ]; then
-            dtc -I dts -O dtb -o rk3568-ecb-pr51.dtb "$DTS_PATH"
-            echo "DTB compiled from $DTS_PATH"
+            echo "Found DTS: $DTS_PATH"
+            # 使用 -i 指定内核头文件路径
+            dtc -I dts -O dtb -o rk3568-ecb-pr51-final.dtb -i ../linux/include "$DTS_PATH"
+            echo "DTB compiled successfully"
+            ls -la rk3568-ecb-pr51-final.dtb
+          else
+            echo "ERROR: rk3568-ecb-pr51-final.dts not found"
+            exit 1
           fi
 
       # --- 放置 DTB 到正确路径 ---
@@ -47,11 +64,12 @@ jobs:
         run: |
           cd fnnas
           mkdir -p make-fnnas/fnnas-files/platform-files/rockchip/bootfs/dtb/rockchip/
-          if [ -f "rk3568-ecb-pr51.dtb" ]; then
-            cp rk3568-ecb-pr51.dtb make-fnnas/fnnas-files/platform-files/rockchip/bootfs/dtb/rockchip/
+          if [ -f "rk3568-ecb-pr51-final.dtb" ]; then
+            cp rk3568-ecb-pr51-final.dtb make-fnnas/fnnas-files/platform-files/rockchip/bootfs/dtb/rockchip/
+            echo "DTB copied to platform directory"
           fi
 
-      # 🆕 添加 AP6256 固件文件到 overlay（源路径：fnnas/wifi_bt_固件/）
+      # --- 添加 AP6256 固件文件到 overlay ---
       - name: Add AP6256 firmware files to overlay
         run: |
           cd fnnas
@@ -67,27 +85,39 @@ jobs:
           # 列出已复制的内容
           ls -la make-fnnas/fnnas-files/overlay/lib/firmware/brcm/ || echo "No files copied"
 
-      # 验证 model_database.conf 条目
-      - name: Verify model database entry
+      # --- 更新 model_database.conf 以匹配新的 DTB 文件名 ---
+      - name: Update model database with correct DTB
         run: |
           cd fnnas
           DB_FILE="make-fnnas/fnnas-files/common-files/etc/model_database.conf"
-          if ! grep -q "Lenovo-ECB-PR51" "$DB_FILE"; then
-            echo "⚠ Warning: ECB-PR51 entry not found in model database"
-            echo "Please add the following line to $DB_FILE:"
-            echo 'r999:Lenovo-ECB-PR51:rk3568:rk3568-ecb-pr51.dtb:NA:u-boot.itb:idbloader.img:8GB-DDR4,32GB-eMMC,2x1Gb-Nic,3xSATA,2xUSB3.0:rk35xx/stable:rockchip:rk3568:fnnasEnv.txt:cuihao99090587:ecb-pr51:yes'
+          # 检查是否已存在 Lenovo-ECB-PR51 条目，如果存在则更新 DTB 字段
+          if grep -q "Lenovo-ECB-PR51" "$DB_FILE"; then
+            # 备份原文件
+            cp "$DB_FILE" "${DB_FILE}.bak"
+            # 使用 sed 替换 DTB 文件名（从 rk3568-ecb-pr51.dtb 改为 rk3568-ecb-pr51-final.dtb）
+            sed -i 's/rk3568-ecb-pr51\.dtb/rk3568-ecb-pr51-final.dtb/g' "$DB_FILE"
+            echo "Updated existing entry with new DTB filename"
+          else
+            # 添加新条目（使用 final DTB）
+            cat <<EOF >> "$DB_FILE"
+r999:Lenovo-ECB-PR51:rk3568:rk3568-ecb-pr51-final.dtb:NA:u-boot.itb:idbloader.img:8GB-DDR4,32GB-eMMC,2x1Gb-Nic,3xSATA,2xUSB3.0:rk35xx/stable:rockchip:rk3568:fnnasEnv.txt:cuihao99090587:ecb-pr51:yes
+EOF
+            echo "Added new entry with final DTB filename"
           fi
+          # 验证条目
+          grep "Lenovo-ECB-PR51" "$DB_FILE"
 
-      # 执行 FnOS 编译
+      # --- 执行 FnOS 编译 ---
       - name: Build FnOS for ECB-PR51
         env:
           KERNEL_TAGS: ${{ github.event.inputs.kernel_tags }}
         run: |
           cd fnnas
           chmod +x rebuild
+          # 使用 -E 保留环境变量
           sudo -E ./rebuild -b Lenovo-ECB-PR51 -k ${{ github.event.inputs.kernel_version }} -a true -n fnos-ecb-pr51
 
-      # 上传产物
+      # --- 上传产物 ---
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
