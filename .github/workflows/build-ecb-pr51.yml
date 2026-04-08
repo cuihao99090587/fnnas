@@ -1,35 +1,96 @@
-name: Build FnOS for ECB-PR51
+name: Build FnOS for Lenovo-ECB-PR51
 
 on:
   workflow_dispatch:
-
-env:
-  TZ: Asia/Shanghai
+    inputs:
+      kernel_tags:
+        description: 'KERNEL_TAGS (内核标签)'
+        required: true
+        default: 'rk35xx/stable'
+        type: choice
+        options:
+          - 'rk35xx/stable'
+          - 'rk35xx/6.1.y'
+          - 'stable'
+          - 'flippy'
+      kernel_version:
+        description: '内核版本'
+        required: true
+        default: '6.12.y'
+        type: string
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
+
     steps:
-      - name: Checkout
+      # 1. 检出你的 fork 仓库（包含 DTS 文件和 model_database.conf）
+      - name: Checkout your forked fnnas repository
         uses: actions/checkout@v4
-
-      - name: Package FnOS for ECB-PR51
-        uses: ophub/fnnas@main
         with:
-          build_target: fnnas
-          fnnas_board: rk3568-ecb-pr51
-          fnnas_kernel: 6.12.y
-          auto_kernel: true
-          kernel_repo: ophub/fnnas
-          rootfs_expand: 16
-          builder_name: fnos-ecb-pr51
+          path: fnnas
+          fetch-depth: 0
 
-      - name: Upload to Release
-        if: ${{ env.PACKAGED_STATUS == 'success' }}
-        uses: ncipollo/release-action@main
+      # 2. 安装编译依赖和设备树编译器
+      - name: Install dependencies and DTC
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y device-tree-compiler build-essential flex bison libssl-dev bc u-boot-tools
+
+      # 3. 编译 DTS 到 DTB（如果你的仓库只有 DTS 源文件）
+      - name: Compile DTS to DTB
+        run: |
+          cd fnnas
+          # 根据你的实际 DTS 文件路径修改
+          DTS_PATH=$(find . -name "rk3568-ecb-pr51.dts" | head -1)
+          if [ -n "$DTS_PATH" ]; then
+            dtc -I dts -O dtb -o rk3568-ecb-pr51.dtb "$DTS_PATH"
+            echo "DTB compiled from $DTS_PATH"
+            ls -la rk3568-ecb-pr51.dtb
+          else
+            echo "Warning: rk3568-ecb-pr51.dts not found, skipping DTB compilation"
+          fi
+
+      # 4. 将 DTB 文件放置到正确路径
+      - name: Place DTB to platform directory
+        run: |
+          cd fnnas
+          # 创建 Rockchip 设备树目录
+          mkdir -p make-fnnas/fnnas-files/platform-files/rockchip/bootfs/dtb/rockchip/
+          # 复制 DTB 文件
+          if [ -f "rk3568-ecb-pr51.dtb" ]; then
+            cp rk3568-ecb-pr51.dtb make-fnnas/fnnas-files/platform-files/rockchip/bootfs/dtb/rockchip/
+            echo "DTB copied to platform directory"
+          fi
+
+      # 5. 确认 model_database.conf 中已有 ECB-PR51 配置
+      - name: Verify model database entry
+        run: |
+          cd fnnas
+          DB_FILE="make-fnnas/fnnas-files/common-files/etc/model_database.conf"
+          if grep -q "Lenovo-ECB-PR51" "$DB_FILE"; then
+            echo "✓ ECB-PR51 entry found in model database"
+          else
+            echo "⚠ Warning: ECB-PR51 entry not found in model database"
+            echo "Please add the following line to $DB_FILE:"
+            echo 'r999:Lenovo-ECB-PR51:rk3568:rk3568-ecb-pr51.dtb:NA:u-boot.itb:idbloader.img:8GB-DDR4,32GB-eMMC,2x1Gb-Nic,3xSATA,2xUSB3.0:rk35xx/stable:rockchip:rk3568:fnnasEnv.txt:cuihao99090587:ecb-pr51:yes'
+          fi
+
+      # 6. 执行 FnOS 编译
+      - name: Build FnOS for ECB-PR51
+        env:
+          KERNEL_TAGS: ${{ github.event.inputs.kernel_tags }}
+        run: |
+          cd fnnas
+          # 赋予 rebuild 脚本执行权限
+          chmod +x rebuild
+          # 使用 -E 保留 KERNEL_TAGS 环境变量
+          sudo -E ./rebuild -b Lenovo-ECB-PR51 -k ${{ github.event.inputs.kernel_version }} -a true -n fnos-ecb-pr51
+
+      # 7. 上传编译产物
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          tag: FnOS_ECB-PR51_${{ github.run_number }}
-          artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
-          allowUpdates: true
-          makeLatest: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: fnos-ecb-pr51-${{ github.run_number }}
+          path: fnnas/build/output/images/*.img.gz
+          retention-days: 30
