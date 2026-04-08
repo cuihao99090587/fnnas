@@ -1,0 +1,35 @@
+name: Build FnOS for ECB-PR51
+
+on:
+  workflow_dispatch:
+
+env:
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Package FnOS for ECB-PR51
+        uses: ophub/fnnas@main
+        with:
+          build_target: fnnas
+          fnnas_board: rk3568-ecb-pr51
+          fnnas_kernel: 6.12.y
+          auto_kernel: true
+          kernel_repo: ophub/fnnas
+          rootfs_expand: 16
+          builder_name: fnos-ecb-pr51
+
+      - name: Upload to Release
+        if: ${{ env.PACKAGED_STATUS == 'success' }}
+        uses: ncipollo/release-action@main
+        with:
+          tag: FnOS_ECB-PR51_${{ github.run_number }}
+          artifacts: ${{ env.PACKAGED_OUTPUTPATH }}/*
+          allowUpdates: true
+          makeLatest: true
+          token: ${{ secrets.GITHUB_TOKEN }}
