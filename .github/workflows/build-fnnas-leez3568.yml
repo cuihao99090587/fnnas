@@ -42,7 +42,7 @@ jobs:
       - name: Prepare build scripts
         run: |
           chmod +x make-fnnas/scripts/*
-          chmod +x renas remake
+          chmod +x renas
       
       - name: Download base image
         run: |
