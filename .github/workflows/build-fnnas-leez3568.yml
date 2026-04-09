@@ -1,0 +1,106 @@
+name: Build FnNAS for Leez-3568
+
+on:
+  workflow_dispatch:
+    inputs:
+      board:
+        description: 'Select board to build'
+        required: true
+        default: 'leez-3568'
+        type: choice
+        options:
+          - leez-3568
+          - nanopi-r5s
+          - nanopi-r5c
+          - r66s
+          - r68s
+      kernel_version:
+        description: 'Kernel version (e.g., 6.12.y)'
+        required: true
+        default: '6.12.y'
+        type: string
+      auto_reboot:
+        description: 'Auto reboot after build'
+        required: false
+        default: 'yes'
+        type: choice
+        options:
+          - yes
+          - no
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    name: Build FnNAS for ${{ inputs.board }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Prepare build environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git wget curl tar gzip
+          
+      - name: Download build scripts
+        run: |
+          cd make-fnnas
+          chmod +x scripts/*
+          
+      - name: Build FnNAS
+        run: |
+          cd make-fnnas
+          ./renas -b ${{ inputs.board }} -k ${{ inputs.kernel_version }}
+          
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: fnnas-${{ inputs.board }}-${{ inputs.kernel_version }}
+          path: |
+            output/*.img.gz
+            output/*.dtb
+          retention-days: 30
+          
+      - name: Create Release
+        if: github.event.inputs.auto_reboot == 'yes'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: fnnas-${{ inputs.board }}-${{ github.run_number }}
+          name: FnNAS for ${{ inputs.board }} - Build #${{ github.run_number }}
+          files: |
+            output/*.img.gz
+            output/*.dtb
+          body: |
+            ## FnNAS Firmware for ${{ inputs.board }}
+            
+            ### Build Information
+            - **Board**: ${{ inputs.board }}
+            - **Kernel**: ${{ inputs.kernel_version }}
+            - **Build Date**: ${{ github.event.head_commit.timestamp }}
+            - **Build Number**: ${{ github.run_number }}
+            
+            ### Files
+            - Firmware image: fnnas-${{ inputs.board }}-*.img.gz
+            - Device tree: rk3568-leez-3568.dtb
+            
+            ### Installation
+            1. Download and extract the .img.gz file
+            2. Write to SD card or eMMC using balenaEtcher or Rufus
+            3. Insert into your device and power on
+            
+            ### Default Credentials
+            - Username: root
+            - Password: 1234
+            
+            ---
+            Built with GitHub Actions
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Build completed
+        run: |
+          echo "Build completed successfully!"
+          echo "Board: ${{ inputs.board }}"
+          echo "Kernel: ${{ inputs.kernel_version }}"
