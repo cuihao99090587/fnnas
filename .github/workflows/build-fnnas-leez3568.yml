@@ -42,14 +42,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y git wget curl tar gzip
           
-      - name: Download build scripts
+      - name: Prepare build scripts
         run: |
-          cd make-fnnas
-          chmod +x scripts/*
+          chmod +x make-fnnas/scripts/*
           
       - name: Build FnNAS
         run: |
-          cd make-fnnas
           ./renas -b ${{ inputs.board }} -k ${{ inputs.kernel_version }}
           
       - name: Upload firmware
