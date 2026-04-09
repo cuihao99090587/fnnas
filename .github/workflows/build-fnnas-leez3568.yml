@@ -48,21 +48,29 @@ jobs:
         run: |
           mkdir -p fnnas-arm64
           cd fnnas-arm64
-          # Download latest FnNAS base image from releases
-          wget -q https://github.com/ophub/fnnas/releases/download/fnnas_imx/fnnas-arm64-*.img.xz || \
-          wget -q https://github.com/ophub/fnnas/releases/download/fnnas_aarch64/fnnas-arm64-*.img.xz || \
-          {
-            echo "ERROR: No base image found in releases"
-            echo "Please download from https://github.com/ophub/fnnas/releases and upload to fnnas-arm64 directory"
-            exit 1
-          }
-          ls -lh *.img.xz
-          # Extract
+          echo "Downloading FnNAS official base image..."
+          # Download from official fnnas_base_image release
+          wget -q --show-progress https://github.com/ophub/fnnas/releases/download/fnnas_base_image/fnnas-official-arm64-image_rockchip_692.img.xz || \
+          wget -q --show-progress https://github.com/ophub/fnnas/releases/download/fnnas_rockchip_692/fnnas_rockchip_nanopi-r5s_k6.12.41_2026.03.22.img.gz
+          
+          # Extract based on file extension
           for file in *.img.xz; do
-            echo "Extracting $file..."
-            xz -dk "$file"
+            if [ -f "$file" ]; then
+              echo "Extracting $file..."
+              xz -dk "$file"
+            fi
           done
+          
+          for file in *.img.gz; do
+            if [ -f "$file" ]; then
+              echo "Extracting $file..."
+              gunzip -k "$file"
+            fi
+          done
+          
+          # Verify
           ls -lh *.img
+          echo "Base image ready!"
       
       - name: Build FnNAS
         run: |
