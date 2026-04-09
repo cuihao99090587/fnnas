@@ -48,7 +48,7 @@ jobs:
           
       - name: Build FnNAS
         run: |
-          ./renas -b ${{ inputs.board }} -k ${{ inputs.kernel_version }}
+          sudo ./renas -b ${{ inputs.board }} -k ${{ inputs.kernel_version }}
           
       - name: Upload firmware
         uses: actions/upload-artifact@v4
